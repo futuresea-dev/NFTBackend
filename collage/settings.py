@@ -51,6 +51,15 @@ ALLOWED_HOSTS =[
     '192.168.112.97', '0.0.0.0', 'localhost', '127.0.0.1'
 ]
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_PERMISSION_CLASSES': (
+#         'rest_framework.permissions.IsAuthenticated',
+#     ),
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+#     ),
+# }
+
 CORS_ALLOWED_ORIGINS = [
     "http://192.168.112.97", 'http://localhost', 'http://127.0.0.1', "http://localhost:8080", "http://127.0.0.1:8000", "http://192.168.112.97:8080", "http://192.168.112.97:8000",
 ]
