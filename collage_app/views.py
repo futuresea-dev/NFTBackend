@@ -5,13 +5,22 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.status import HTTP_404_NOT_FOUND
+from rest_framework import generics
 import time
-
-from .serializers import TokenSerializer, SerieSerializer
+from rest_framework.permissions import IsAdminUser
+from .serializers import TokenSerializer, TokenUpdateSerializer, CollectionSerializer, UserSerializers
 from .models import Token, Serie
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
+
+#
+# class IsSuperUser(IsAdminUser):
+#     def has_permission(self, request, view):
+#         return bool(request.user and request.user.is_superuser)
 
 
 class TokenList(APIView):
+
     def get(self, request, format=None):
         token = Token.objects.filter(serie__choices="SOLD").order_by('?')
         time.sleep(10)
@@ -64,7 +73,7 @@ class TokenAddSet(ModelViewSet):
 
 
 class TokenRandomGet(ModelViewSet):
-    queryset = Token.objects.filter(status="ACTIVE").all()
+    queryset = Token.objects.all()
     serializer_class = TokenSerializer
 
     def get_queryset(self):
@@ -75,3 +84,66 @@ class TokenRandomGet(ModelViewSet):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
+
+
+class TokenUpdateSet(ModelViewSet):
+    queryset = Token.objects.all()
+    serializer_class = TokenUpdateSerializer
+
+    def update(self, request, pk=None):
+        Token.objects.filter(token_id=pk).update(status="SOLD")
+        return Response()
+
+
+class CollectionsGet(ModelViewSet):
+    queryset = Token.objects.all().distinct("collection_id")
+    serializer_class = CollectionSerializer
+
+    def get_queryset(self):
+        amount = Token.objects.filter(status="ACTIVE").count()
+        if amount == 0:
+            return self.queryset
+        else:
+            return {}
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class TokensGet(ModelViewSet):
+    queryset = Token.objects.all()
+    serializer_class = TokenSerializer
+
+    def get_queryset(self):
+        return self.queryset.filter(collection_id=self.coll_id)
+
+    def list(self, request, *args, **kwargs):
+        print(request.data)
+        self.coll_id = request.data.get('collection_id', request.data)
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+
+class UserCheckGet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializers
+
+    def list(self, request, *args, **kwargs):
+        print(request.data)
+        self.username = request.data.get('username', request.data)
+        self.password = request.data.get('password', request.data)
+        user = authenticate(username=self.username,
+                            password=self.password)
+
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                return Response("True")
+            else:
+                return Response("Success")
+        else:
+            return Response("Invalid login")

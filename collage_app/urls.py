@@ -6,6 +6,10 @@ router = routers.SimpleRouter()
 # router.register(r'serie', views.SeriedToken)
 router.register(r'serie/add', views.TokenAddSet)
 router.register(r'serie/random', views.TokenRandomGet, basename="random")
+router.register(r'serie/update', views.TokenUpdateSet, basename="update")
+router.register(r'serie/get_collections', views.CollectionsGet)
+router.register(r'serie/get_tokens', views.TokensGet)
+router.register(r'check', views.UserCheckGet)
 urlpatterns = router.urls
 
 urlpatterns += [
